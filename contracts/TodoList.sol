@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.20;
 
 contract TodoList {
   uint public taskCount = 0;
