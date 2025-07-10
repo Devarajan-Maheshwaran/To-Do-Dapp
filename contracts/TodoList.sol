@@ -1,42 +1,48 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
 contract TodoList {
-  uint public taskCount = 0;
+    uint public taskCount;
 
-  struct Task {
-    uint id;
-    string content;
-    bool completed;
-  }
+    struct Task {
+        uint id;
+        string content;
+        bool completed;
+        address creator;
+    }
 
-  mapping(uint => Task) public tasks;
+    mapping(uint => Task) public tasks;
 
-  event TaskCreated(
-    uint id,
-    string content,
-    bool completed
-  );
+    event TaskCreated(uint indexed id, string content, address indexed creator);
+    event TaskToggled(uint indexed id, bool completed);
 
-  event TaskCompleted(
-    uint id,
-    bool completed
-  );
+    constructor() {
+        createTask("Welcome to the Blockchain Todo List");
+    }
 
-  constructor() public {
-    createTask("Check out dappuniversity.com");
-  }
+    function createTask(string memory _content) public {
+        require(bytes(_content).length > 0, "Content cannot be empty");
 
-  function createTask(string memory _content) public {
-    taskCount ++;
-    tasks[taskCount] = Task(taskCount, _content, false);
-    emit TaskCreated(taskCount, _content, false);
-  }
+        taskCount++;
+        tasks[taskCount] = Task({
+            id: taskCount,
+            content: _content,
+            completed: false,
+            creator: msg.sender
+        });
 
-  function toggleCompleted(uint _id) public {
-    Task memory _task = tasks[_id];
-    _task.completed = !_task.completed;
-    tasks[_id] = _task;
-    emit TaskCompleted(_id, _task.completed);
-  }
+        emit TaskCreated(taskCount, _content, msg.sender);
+    }
 
+    function toggleCompleted(uint _id) public {
+        Task storage task = tasks[_id];
+        require(task.creator == msg.sender, "Not your task");
+        task.completed = !task.completed;
+
+        emit TaskToggled(_id, task.completed);
+    }
+
+    function getTask(uint _id) public view returns (Task memory) {
+        return tasks[_id];
+    }
 }
